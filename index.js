@@ -93,7 +93,7 @@ bot.on('message', async (msg) => {
             rows[0]['_rawData'][4] = false
             await rows[0].save()
 
-            bot.sendMessage(chatId, `<pre>${chatId} - </pre>`, defaultOpts)
+            bot.sendMessage(adminId, `<pre>${chatId} - </pre>`, defaultOpts)
 
             return bot.sendMessage(chatId, `Спасибо за отзыв!`)
         }
