@@ -35,6 +35,7 @@ const getBaseRates = async () => {
 
 let sheet, amount, categoryText
 
+let operationStatus
 
 const date = formatDate(new Date())
 
@@ -367,7 +368,7 @@ bot.on('message', async (msg) => {
             return bot.sendMessage(chatId, `За это время:\n\n${statAnswer}\nВсего: ${rows[0]['_rawData'][3]} руб`, defaultOpts)
         }
 
-        let operationStatus
+        
 
         if (text === 'Добавить доход ➕' || text === 'Добавить расход ➖') {
             rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
