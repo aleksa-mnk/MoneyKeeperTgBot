@@ -16,6 +16,8 @@ const defaultOpts = {
 const rateOpts = {
     parse_mode: 'HTML',
     reply_markup: {
+        resize_keyboard: true,
+        one_time_keyboard: true,
         // inline_keyboard: [[{ text: "Посмотреть остальное \u{1F9D0}", callback_data: "all_currency" }]],
         keyboard: [[`Добавить доход \u2795`, "Добавить расход \u2796"], ["Текущий баланс \u{1F911}", "Статистика \u{1F4CA}"]]
     }
