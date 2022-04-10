@@ -69,10 +69,23 @@ bot.on('message', async (msg) => {
 
     const rows = await sheet.getRows()
 
+    const setUserStatus = (status, statistic = 'Не посчитано.') => {
+        rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
+        rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
+        rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
+        rows[0]['_rawData'][3] = statistic
+        rows[0]['_rawData'][4] = status
+    }
+
     try {
 
-
         const listOfCategory = []
+
+        if (text.toLowerCase() === 'отмена') {
+            setUserStatus(false)
+            await rows[0].save()
+            return bot.sendMessage(chatId, 'Отменено.', defaultOpts)
+        }
 
         // ---------------------АДМИНКА-------------------------
 
@@ -87,11 +100,7 @@ bot.on('message', async (msg) => {
 
         if (rows[0]['_rawData'][4] === 'review') {
             bot.sendMessage(adminId, `Оставлен отзыв от ${firstName}(${chatId}) - @${msg.from.username}\n\n${text}`, adminOpts)
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = false
+            setUserStatus(false)
             await rows[0].save()
 
             bot.sendMessage(adminId, `<pre>${chatId} - </pre>`, adminOpts)
@@ -99,22 +108,14 @@ bot.on('message', async (msg) => {
             return bot.sendMessage(chatId, `Спасибо за отзыв!`)
         }
         if (text === 'ответ' && chatId == adminId) {
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = 'answer'
+            setUserStatus('answer')
             await rows[0].save()
             return
         }
         if (rows[0]['_rawData'][4] === 'answer') {
             const userId = text.substring(0, text.indexOf(' - '))
             const answer = text.substring(text.indexOf(' - ') + 3)
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = false
+            setUserStatus(false)
             await rows[0].save()
             return bot.sendMessage(userId, `\u2709 Ответ на твой отзыв:\n\n${answer}`, defaultOpts)
         }
@@ -131,17 +132,6 @@ bot.on('message', async (msg) => {
 
         const userCategoryList = listOfCategory.filter((n) => { return n != 'Без категории' && n != 'undefined'}).map((category) => [category])
         userCategoryList.push(['Без категории'])
-
-
-        if (text.toLowerCase() === 'отмена') {
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = false
-            await rows[0].save()
-            return bot.sendMessage(chatId, 'Отменено.', defaultOpts)
-        }
 
         const userName = firstName
 
@@ -161,25 +151,16 @@ bot.on('message', async (msg) => {
             list.push(['Отмена'])
             param = renamecategoryOpts(list)
             
-
             if (text === '/renamecategory') {
 
-                rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = 'Не посчитано.'
-                rows[0]['_rawData'][4] = 'rename'
+                setUserStatus('rename')
                 await rows[0].save()
 
                 return bot.sendMessage(chatId, 'Выбери категорию, которую хочешь изменить.', param)
             }
             // тут можно поробовать сгруппировать
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = 'Не посчитано.'
-                rows[0]['_rawData'][4] = 'delete'
-                await rows[0].save()
+            setUserStatus('delete')
+            await rows[0].save()
 
             return bot.sendMessage(chatId, 'Выбери категорию, которую хочешь удалить.\n \u2757Все операции, связанные с ней, будут удалены безвозвратно.', param)
         } else if (text[0] === '/') {
@@ -213,20 +194,12 @@ bot.on('message', async (msg) => {
         }
 
         if (rows[0]['_rawData'][4] === 'delete') {
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = false
+            setUserStatus(false)
             await rows[0].save()
 
             // тут тож группировка
             if (isInclude(userCategoryList, text)) {
-                rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = 'Не посчитано.'
-                rows[0]['_rawData'][4] = 'delete'
+                setUserStatus('delete')
                 await rows[0].save()
                 return bot.sendMessage(chatId, 'Нет такой категории.')
             }
@@ -253,18 +226,11 @@ bot.on('message', async (msg) => {
 
         if (rows[0]['_rawData'][4] === 'rename') {
             rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = text
-                rows[0]['_rawData'][4] = 'finish-rename'
+            setUserStatus('finish-rename', text)
                 await rows[0].save()
 
             if (isInclude(userCategoryList, text)) {
-                rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = 'Не посчитано.'
-                rows[0]['_rawData'][4] = 'rename'
+                setUserStatus('rename')
                 await rows[0].save()
                 bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/2c7/850/2c78501f-e097-3ef2-9e3c-eae75db54b58/192/40.webp')
                 return bot.sendMessage(chatId, 'Нет такой категории.')
@@ -276,11 +242,7 @@ bot.on('message', async (msg) => {
 
         if (rows[0]['_rawData'][4] === 'finish-rename') {
             let renamedCategory = rows[0]['_rawData'][3]
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = 'Не посчитано.'
-            rows[0]['_rawData'][4] = false
+            setUserStatus(false)
             await rows[0].save()
 
             // console.log(renamedcategory);
@@ -305,11 +267,7 @@ bot.on('message', async (msg) => {
 
         if (text === 'статистика' || text === 'Статистика 📊') {
 
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = `хз пока`
-            rows[0]['_rawData'][4] = 'statistics'
+            setUserStatus('statistics', 'хз пока')
 
             await rows[0].save()
 
@@ -353,11 +311,7 @@ bot.on('message', async (msg) => {
                 statAnswer += `<b>${key}</b>: <b>${statAnswObj[key]}</b> руб\n`
             }
 
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = `=SUMIF(C3:C1000,">"&${period[text.toLowerCase()]['formula']},A3:A1000)`
-            rows[0]['_rawData'][4] = false
+            setUserStatus(false, `=SUMIF(C3:C1000,">"&${period[text.toLowerCase()]['formula']},A3:A1000)`)
 
             await rows[0].save()
 
@@ -368,15 +322,9 @@ bot.on('message', async (msg) => {
             return bot.sendMessage(chatId, `За это время:\n\n${statAnswer}\nВсего: ${rows[0]['_rawData'][3]} руб`, defaultOpts)
         }
 
-        
-
         if (text === 'Добавить доход ➕' || text === 'Добавить расход ➖') {
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = `Не посчитано ещё`
-            rows[0]['_rawData'][4] = 'addAmount'
 
+            setUserStatus('addAmount', `Не посчитано ещё`)
             await rows[0].save()
 
             operationStatus = '-'
@@ -390,21 +338,13 @@ bot.on('message', async (msg) => {
         if (rows[0]['_rawData'][4] === 'addAmount') {
 
             // и здесь
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-            rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-            rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-            rows[0]['_rawData'][3] = `Не посчитано ещё`
-            rows[0]['_rawData'][4] = 'addCategory'
+            setUserStatus('addCategory', `Не посчитано ещё`)
 
             await rows[0].save()
 
             let exp = text.replace(/[,]/, '.')
             if (!+exp) {
-                rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = `Не посчитано ещё`
-                rows[0]['_rawData'][4] = 'addAmount'
+                setUserStatus('addAmount', `Не посчитано ещё`)
 
                 await rows[0].save()
                 return bot.sendMessage(chatId, 'Будь добр, введи число правильно..')
@@ -416,11 +356,7 @@ bot.on('message', async (msg) => {
             }
 
             if (Math.abs(+amount) > 100000000) {
-                rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = `Не посчитано ещё`
-                rows[0]['_rawData'][4] = 'addAmount'
+                setUserStatus('addAmount', `Не посчитано ещё`)
 
                 await rows[0].save()
                 bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/2ad/834/2ad8341a-31fd-36c7-9af3-10820cfcbe51/192/13.webp')
@@ -433,11 +369,7 @@ bot.on('message', async (msg) => {
             let categoryText = text
             amount = '' + amount
             await sheet.addRow({ 'Сумма': amount, 'Дата': date, 'Категория': categoryText, 'Остальное': `=DATEDIF(DATE(${new Date().getFullYear()}, ${new Date().getMonth() + 1}, ${new Date().getDate()}), TODAY(), "D")`, 'Статус': `=DATEDIF(DATE(${new Date().getFullYear()}, ${new Date().getMonth() + 1}, ${new Date().getDate()}), TODAY(), "M")` })
-            rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-                rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-                rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-                rows[0]['_rawData'][3] = `Не посчитано ещё`
-                rows[0]['_rawData'][4] = false
+            setUserStatus(false, `Не посчитано ещё`)
 
                 await rows[0].save()
             if ((+balance + +amount) < 0) {
@@ -513,11 +445,7 @@ bot.on('callback_query', async msg => {
     // вынести тоже вообще возможно всё!)
 
     if (data === 'start') {
-        rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-        rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-        rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-        rows[0]['_rawData'][3] = 'Не посчитано.'
-        rows[0]['_rawData'][4] = false
+        setUserStatus(false)
         await rows[0].save()
         bot.editMessageText(`👇 Это главное <b>меню</b>`,
             { chat_id: chatId, message_id: msg.message.message_id, parse_mode: 'HTML' })
@@ -525,11 +453,7 @@ bot.on('callback_query', async msg => {
     }
 
     if (data === 'toMe') {
-        rows[0]['_rawData'][0] = '=СУММ(A3:A1000)'
-        rows[0]['_rawData'][1] = '=SUMIF(A3:A1000,"<0")'
-        rows[0]['_rawData'][2] = '=SUMIF(A3:A1000,">0")'
-        rows[0]['_rawData'][3] = 'Не посчитано.'
-        rows[0]['_rawData'][4] = 'review'
+        setUserStatus('review')
         await rows[0].save()
 
         bot.editMessageText(`🖋 Напиши свой вопрос, отзыв или предложение`,
