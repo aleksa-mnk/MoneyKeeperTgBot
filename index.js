@@ -185,7 +185,7 @@ bot.on('message', async (msg) => {
 
             const flatUserCategoryList = userCategoryList.flat();
 
-            if (flatUserCategoryList.includes(text)) {
+            if (!flatUserCategoryList.includes(text)) {
                 setUserStatus('delete')
                 await rows[0].save()
                 return bot.sendMessage(chatId, 'Нет такой категории.')
